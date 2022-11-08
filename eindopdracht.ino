@@ -1,4 +1,3 @@
-
 #include "accelerometer.h"
 #include "mymotor.h"
 #include "motpid.h"
@@ -8,31 +7,32 @@ void setup() {
   setupAcc();
   setupMotor();
   
-  Gyro& gyro = getGyro();
+  float gyro = getGyro();
   setupPid();
   setSpeed(255);
 }
-int minv = -900;
-int maxv = 900;
+constexpr int minv = -200;
+constexpr int maxv = 200;
 
 void loop() {
+  
   updateAccGyro();
 
-  Gyro& gyro = getGyro();
-
-  double out = pidLoop(gyro.z);
+  float gyro = getGyro() + getZero();
   
-  //Serial.println(gyro.z);
+  double out = pidLoop(gyro);
+  
+  int mapped = map(out, minv, maxv, -254, 255); 
   Serial.println(out);
-  out = constrain(out, minv, maxv);
+//  int deadzone = 30;
+//  if (mapped > 0) mapped += deadzone;
+//  else if (mapped < 0) mapped -= deadzone;
   
-  int mapped = map((int)out, minv, maxv, -254, 255); 
   if (mapped > 255) mapped = 255;
-  if (mapped < -254) mapped = -254;
+  else if (mapped < -254) mapped = -254;
   //Serial.println(mapped);
+  
   setSpeed(mapped);
- 
 
   drive();
-  delay(1);
 }

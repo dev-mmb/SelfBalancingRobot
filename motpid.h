@@ -1,18 +1,30 @@
-double kp = 0.07;
-double ki = 0;
-double kd = 1;
+constexpr double multi = 6;
+
+constexpr double kp = 1 * multi ;
+constexpr double ki = 0 * multi;
+constexpr double kd = 1 * multi;
 
 unsigned long currentTime, previousTime;
 double elapsedTime;
 double error;
 double lastError;
-double input, output, setPoint;
+double setPoint;
 double cumError, rateError;
-
 
 void setupPid() {
 	setPoint = 0;   
 }
+/*
+half werkend!!!!
+1
+1
+
+
+
+
+
+
+*/
 
 double pidLoop(double inp) {
 	currentTime = millis();                //get current time

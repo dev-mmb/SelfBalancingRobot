@@ -1,8 +1,7 @@
-
-constexpr int mot1a = A0;
-constexpr int mot1b = A1;
-constexpr int mot2a = A2;
-constexpr int mot2b = A3;
+constexpr int mot1a = 5;
+constexpr int mot1b = 3;
+constexpr int mot2a = 6;
+constexpr int mot2b = 9;
 
 int speed = 0;
 

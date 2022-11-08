@@ -1,70 +1,29 @@
-#include "Wire.h"
+#include <Wire.h>
+#include <MPU6050.h>
 #include <SimpleKalmanFilter.h>
-
-constexpr int MPU_ADDR = 0x68; 
-SimpleKalmanFilter xf(2, 2, 0.01);
-SimpleKalmanFilter yf(2, 2, 0.01);
+MPU6050 mpu;
 SimpleKalmanFilter zf(2, 2, 0.01);
-
-
-struct Gyro {
-	double x, y, z; 
-} gyro;
-
-struct Acc {
-	double x, // roll
-	y, // yaw
-	z; // pitch
-} acc;
-
-char tmp_str[7];
-
+int roll = 0;
 
 inline int32_t getZero() {
-	return 0;
-}
-
-
-char* convert_int16_to_str(int16_t i) { 
-	sprintf(tmp_str, "%6d", i);
-	return tmp_str;
+	return 96;
 }
 
 inline void updateAccGyro() {
-	Wire.beginTransmission(MPU_ADDR);
-	Wire.write(0x3B); 
-	Wire.endTransmission(false); 
-	Wire.requestFrom(MPU_ADDR, 7*2, true);
+	// Read normalized values 
+	Vector normAccel = mpu.readNormalizeAccel();
 
-	int16_t x = Wire.read()<<8 | Wire.read(); 
-	int16_t y = Wire.read()<<8 | Wire.read();
-	int16_t z = Wire.read()<<8 | Wire.read(); 
+	int pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
+	roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
 
-	gyro.x = xf.updateEstimate((int)x - getZero()) ;
-	gyro.y = yf.updateEstimate((int)y - getZero()) ;
-	gyro.z = zf.updateEstimate((int)z - getZero()) ;
-	
-	int _ = Wire.read()<<8 | Wire.read(); 
-
-	x = Wire.read()<<8 | Wire.read(); 
-	y = Wire.read()<<8 | Wire.read(); 
-	z = Wire.read()<<8 | Wire.read(); 
-
-	acc.x = (double)x;
-	acc.y = (double)y;
-	acc.z = (double)z;
 }
 void setupAcc() {
-	Wire.begin();
-	Wire.beginTransmission(MPU_ADDR); 
-	Wire.write(0x6B); 
-	Wire.write(0); 
-	Wire.endTransmission(true);
-
+	while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
+	{
+		Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
+		delay(500);
+  	}                      //end the transmission
 }
-inline Gyro& getGyro() {
-	return gyro;
-}
-inline Acc& getAcc() {
-	return acc;
+inline float getGyro() {
+	return roll;
 }
